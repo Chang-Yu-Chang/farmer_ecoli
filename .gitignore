@@ -1,0 +1,8 @@
+*.Rproj
+*.Rproj.user
+.DS_Store
+figure/*
+scripts/deprecated/*
+data/deprecated/*
+data/raw/farmer_mapping_files/*.pdf
+data/experimental_scheme/*.pdf
