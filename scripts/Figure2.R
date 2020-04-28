@@ -10,13 +10,10 @@ df_farmer_func_mean_star <- fread("../data/temp/df_farmer_func_mean_star.txt") %
 df_farmer_func_max <- fread("../data/temp/df_farmer_func_max.txt") %>% as_tibble
 df_farmer_func_max_star <- fread("../data/temp/df_farmer_func_max_star.txt") %>% as_tibble
 df_muller <- fread("../data/temp/df_muller.txt") %>% as_tibble()
-#df_farmer_ttest_mean <- fread("../data/temp/df_farmer_ttest_mean.txt") %>% as.tibble %>% select(Transfer, Asterisk)
-#df_farmer_ttest_max <- fread("../data/temp/df_farmer_ttest_max.txt") %>% as.tibble %>% select(Transfer, Asterisk)
 df_farmer_heritability <- fread("../data/temp/df_farmer_heritability.txt")
 df_farmer_heritability_stat_collapsed <- fread("../data/temp/df_farmer_heritability_stat_collapsed.txt")
 
 # Panel A. Cartoon
-#p_cartoon <-  ggdraw() + draw_label(label = "cartoon", x = .5, y = .5, color = "black")
 p_cartoon <- ggdraw() + draw_image("../data/experimental_scheme/Figure2A.png")
 
 

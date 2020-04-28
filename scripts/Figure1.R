@@ -30,15 +30,7 @@ p_B <- df_amylase_func_mean %>%
     theme_cowplot() +
     theme(legend.position = c(0.1, 0.95), legend.direction = "vertical", legend.title = element_blank()) +
     labs(x = "Generation", y = "Mean Function")
-# Panel B inset. Amylase lm fit and Pearson correlation
-# df_amylase_func %>%
-#     filter(Stat == "Mean", Transfer >= 4) %>%
-#     group_by(Experiment) %>%
-#     nest() %>%
-#     mutate(test = map(data, ~cor.test(.x$CommunityFunction, .x$Transfer)),
-#            tided = map(test, tidy)) %>%
-#     unnest(tided) %>%
-#     select(Experiment, estimate, p.value)
+
 
 p_B_inset <- df_amylase_func %>%
     filter(Stat %in% c("Mean", "Sd")) %>%
@@ -55,18 +47,7 @@ p_B_inset <- df_amylase_func %>%
     theme_cowplot() +
     theme(legend.position = "none", legend.title = element_blank(), axis.title = element_blank()) +
     labs(x = "Generation", y = "Mean Function")
-p_B
 
-# Panel C. Max
-## Pearson correlation
-# df_amylase_func %>%
-#     filter(Stat == "Max", Transfer >= 4) %>%
-#     group_by(Experiment) %>%
-#     nest() %>%
-#     mutate(test = map(data, ~cor.test(.x$Transfer, .x$CommunityFunction, method = "pearson")),
-#            tided = map(test, glance)) %>%
-#     unnest(tided) %>%
-#     select(Experiment, estimate, p.value)
 
 p_C <- df_amylase_func_max %>%
     ggplot(aes(x = Transfer, y = MaxFunction, color = Experiment, group = Experiment)) +

@@ -61,7 +61,6 @@ for (i in 1:length(temp_list)) {
         left_join(temp_map, by = "Offspring") %>%
         filter(!is.na(Parent)) %>%
         left_join(parent, by = "Parent")
-#        select(ParentFunction, ParentFunctionSd, OffspringFunction, OffspringFunctionSd) %>%
 }
 
 df_farmer_heritability <- rbindlist(temp_list, idcol = "Transfer") %>% as_tibble %>%
@@ -99,41 +98,6 @@ df_farmer_heritability_stat$p.value_plot[df_farmer_heritability_stat$p.value_Slo
 fwrite(df_farmer_heritability, "../data/temp/df_farmer_heritability.txt")
 fwrite(df_farmer_heritability_stat, "../data/temp/df_farmer_heritability_stat.txt")
 fwrite(df_farmer_heritability_stat_collapsed, "../data/temp/df_farmer_heritability_stat_collapsed.txt")
-
-
-
-# Compute heritability from breeder's equation
-df_farmer_func <- fread("../data/temp/df_farmer_func.txt") %>% as_tibble() %>% mutate(Transfer = factor(Transfer))
-df_selected_parent <- df_well_map %>% distinct(Transfer, Parent) %>% mutate(Transfer = factor(Transfer))
-
-
-df_selected_parent_func <- df_farmer_func %>%
-    filter(Experiment == "expt") %>%
-    select(Transfer, Media, MeanFunction) %>%
-    setNames(c("Transfer", "Parent", "Function")) %>%
-    right_join(df_selected_parent)
-
-
-parents <- df_farmer_func %>%
-    filter(Experiment == "expt") %>%
-    group_by(Transfer) %>%
-    summarize(MeanParent = mean(MeanFunction, na.rm = T))
-
-selected_parents <- df_selected_parent_func %>%
-    group_by(Transfer) %>%
-    summarize(MeanSelectedParent = mean(Function, na.rm = T))
-
-selected_parents %>%
-    mutate(MeanParent = parents$MeanParent[1:6],
-           MeanOffspring = parents$MeanParent[2:7]) %>%
-    mutate(RealizedHeritability = (MeanParent-MeanOffspring)/(MeanParent-MeanSelectedParent))
-
-
-
-
-
-
-
 
 
 
