@@ -16,10 +16,11 @@ p_cartoon <- ggdraw() + draw_image("../data/experimental_scheme/Figure1A.png")
 # Panel B. Mean
 p_B <- df_amylase_func_mean %>%
     ggplot(aes(x = Transfer, y = MeanCommunityFunction, color = Experiment, group = Experiment)) +
-    geom_errorbar(aes(x=Transfer, ymin = MeanCommunityFunction-SdCommunityFunction, ymax = MeanCommunityFunction+SdCommunityFunction),
+    geom_errorbar(aes(x=Transfer, ymin = MeanCommunityFunction - SdCommunityFunction,
+                      ymax = MeanCommunityFunction + SdCommunityFunction),
                   width = .2, position = position_dodge(0.3)) +
-    geom_line(linetype = 2, position = position_dodge(0.3)) +
     geom_point(shape = 21, fill = "white", size = 3, position = position_dodge(0.3)) +
+    geom_line(linetype = 2, position = position_dodge(0.3)) +
     # Add asterisk
     geom_text(data = df_amylase_func_mean_star, inherit.aes = F, aes(x = Transfer, y = AsteriskLocation, label = Asterisk),
               size = 4, color = "black") +
@@ -29,7 +30,6 @@ p_B <- df_amylase_func_mean %>%
     theme_cowplot() +
     theme(legend.position = c(0.1, 0.95), legend.direction = "vertical", legend.title = element_blank()) +
     labs(x = "Generation", y = "Mean Function")
-
 # Panel B inset. Amylase lm fit and Pearson correlation
 # df_amylase_func %>%
 #     filter(Stat == "Mean", Transfer >= 4) %>%
@@ -55,7 +55,7 @@ p_B_inset <- df_amylase_func %>%
     theme_cowplot() +
     theme(legend.position = "none", legend.title = element_blank(), axis.title = element_blank()) +
     labs(x = "Generation", y = "Mean Function")
-
+p_B
 
 # Panel C. Max
 ## Pearson correlation

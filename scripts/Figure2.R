@@ -23,7 +23,8 @@ p_cartoon <- ggdraw() + draw_image("../data/experimental_scheme/Figure2A.png")
 # Panel B. Mean function
 p_B <- df_farmer_func_mean %>%
     ggplot(aes(x = Transfer, y = MeanCommunityFunction, color = Experiment, group = Experiment)) +
-    geom_errorbar(aes(x=Transfer, ymin = MeanCommunityFunction-SdCommunityFunction, ymax = MeanCommunityFunction+SdCommunityFunction),
+    geom_errorbar(aes(x=Transfer, ymin = MeanCommunityFunction-SeCommunityFunction,
+                      ymax = MeanCommunityFunction+SeCommunityFunction),
                   width = .2, position = position_dodge(0.3)) +
     geom_line(linetype = 2,position = position_dodge(0.3)) +
     geom_point(shape = 21, fill = "white", size = 3, position = position_dodge(0.3)) +
@@ -40,7 +41,7 @@ p_B <- df_farmer_func_mean %>%
 # Panel C. Maximum function
 p_C <- df_farmer_func_max %>%
     ggplot(aes(x = Transfer, y = MeanFunction, color = Experiment, group = Experiment)) +
-    geom_errorbar(aes(x=Transfer, ymin = MeanFunction-SdFunction, ymax = MeanFunction+SdFunction),
+    geom_errorbar(aes(x=Transfer, ymin = MeanFunction-SeFunction, ymax = MeanFunction+SeFunction),
                   width = .2, position = position_dodge(0.3)) +
     geom_line(linetype = 2, position = position_dodge(0.3)) +
     geom_point(shape = 24, fill = "white", size = 3, position = position_dodge(0.3)) +
@@ -73,8 +74,8 @@ p_D <- df_farmer_func %>%
 p_E <- df_farmer_heritability %>%
     ggplot(aes(x = ParentFunction, y = OffspringFunction, color = Origin, shape = Origin)) +
     geom_abline(size = .5, linetype = 2, color = "grey", slope = df_farmer_heritability_stat_collapsed$estimate[2], intercept = df_farmer_heritability_stat_collapsed$estimate[1]) +
-    geom_errorbar(size = .1, aes(ymin = OffspringFunction-OffspringFunctionSd, ymax = OffspringFunction+OffspringFunctionSd)) +
-    geom_errorbarh(size = .1, aes(xmin = ParentFunction-ParentFunctionSd, xmax = ParentFunction+ParentFunctionSd)) +
+    geom_errorbar(size = .1, aes(ymin = OffspringFunction-OffspringFunctionSe, ymax = OffspringFunction+OffspringFunctionSe)) +
+    geom_errorbarh(size = .1, aes(xmin = ParentFunction-ParentFunctionSe, xmax = ParentFunction+ParentFunctionSe)) +
     geom_point(fill = "white") +
     scale_color_manual(values = c("black", "#F3949B", "#E4211D")) +
     scale_shape_manual(values = c(21, 24, 22)) +
@@ -105,7 +106,7 @@ p_F <- df_muller %>%
 df_farmer_func_var <- df_farmer_func %>%
     select(Transfer, Experiment, Media, CommunityFunction = MeanFunction) %>%
     group_by(Transfer, Experiment) %>%
-    summarize(VarCommunityFunction = var(CommunityFunction), MeanCommunityFunction = mean(CommunityFunction), SdCommunityFunction = sd(CommunityFunction)) %>%
+    summarize(VarCommunityFunction = var(CommunityFunction), MeanCommunityFunction = mean(CommunityFunction), SdCommunityFunction = sd(CommunityFunction), SeCommunityFunction = SdCommunityFunction/sqrt(n())) %>%
     filter(Experiment == "expt")
 
 ylim.prim <- c(0, 0.05)   # in this example, var
@@ -120,7 +121,8 @@ p_G <- df_farmer_func_var %>%
     geom_line(aes(y = VarCommunityFunction, group = Experiment), linetype = 2, color = mycolors["left"]) +
     geom_point(aes(y = VarCommunityFunction, group = Experiment), shape = 22, fill = "white", size = 3, color = mycolors["left"]) +
     # Mean, secondary axis
-    geom_errorbar(aes(x=Transfer, ymin = a + b * (MeanCommunityFunction-SdCommunityFunction), ymax = a + b * (MeanCommunityFunction+SdCommunityFunction)),
+    geom_errorbar(aes(x=Transfer, ymin = a + b * (MeanCommunityFunction-SeCommunityFunction),
+                      ymax = a + b * (MeanCommunityFunction+SeCommunityFunction)),
                   width = .2, position = position_dodge(0.01), color = mycolors["right"]) +
     geom_line(aes(y = a + b * MeanCommunityFunction, group = Experiment), linetype = 2, color = mycolors["right"]) +
     geom_point(aes(y = a + b * MeanCommunityFunction, group = Experiment), shape = 21, fill = "white", size = 3, color = mycolors["right"]) +

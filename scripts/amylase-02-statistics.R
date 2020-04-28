@@ -56,6 +56,7 @@ df_amylase_func_mean <- df_amylase_func %>%
     filter(Stat %in% c("Mean", "Sd")) %>%
     pivot_wider(names_from = Stat, values_from = CommunityFunction) %>%
     setNames(c("Transfer", "Experiment", "MeanCommunityFunction", "SdCommunityFunction")) %>%
+    mutate(SeCommunityFunction = SdCommunityFunction / sqrt(24)) %>%
     arrange(Experiment, Transfer) %>%
     left_join(df_amylase_ttest_mean)
 

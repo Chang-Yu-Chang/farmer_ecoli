@@ -67,7 +67,7 @@ fwrite(df_wells2, "../data/temp/df_muller.txt")
 
 # OD data
 # Read farmer data
-df_farmer <- fread("../data/raw/farmer_OD.txt") %>% as_tibble
+df_farmer <- fread("../data/temp/farmer_OD.txt") %>% as_tibble
 df_well_map_origin <- fread("../data/temp/df_well_map_origin.txt", na.strings = "") %>% as_tibble
 
 # Remove the dubious origins communities
@@ -135,7 +135,8 @@ df_farmer_func <-
     select(Transfer, Experiment, Media, Function) %>%
     group_by(Transfer, Experiment, Media) %>%
     arrange(Transfer, Experiment, Media) %>%
-    summarise(MeanFunction = mean(Function), SdFunction = sd(Function)) %>%
+    summarise(MeanFunction = mean(Function), SdFunction = sd(Function),
+              SeFunction = SdFunction / sqrt(n())) %>%
     {.}
 
 

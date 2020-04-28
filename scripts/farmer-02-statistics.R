@@ -35,13 +35,15 @@ fwrite(df_farmer_ttest_mean, "../data/temp/df_farmer_ttest_mean.txt")
 df_farmer_func_mean <- df_farmer_func %>%
     select(Transfer, Experiment, Media, CommunityFunction = MeanFunction) %>%
     group_by(Transfer, Experiment) %>%
-    summarize(MeanCommunityFunction = mean(CommunityFunction), SdCommunityFunction = sd(CommunityFunction)) %>%
+    summarize(MeanCommunityFunction = mean(CommunityFunction),
+              SdCommunityFunction = sd(CommunityFunction),
+              SeCommunityFunction = SdCommunityFunction/sqrt(n())) %>%
     arrange(Experiment, Transfer) %>%
     left_join(df_farmer_ttest_mean)
 
 ## Add asterisks
 df_farmer_func_mean_star <- df_farmer_func_mean %>%
-    mutate(temp_max = MeanCommunityFunction + SdCommunityFunction) %>%
+    mutate(temp_max = MeanCommunityFunction + SeCommunityFunction) %>%
     select(Transfer, Experiment, temp_max, Asterisk) %>%
     pivot_wider(names_from = Experiment, values_from = temp_max) %>%
     mutate(AsteriskLocation = max(ctrl, expt) + 0.01) %>%
@@ -106,7 +108,7 @@ df_farmer_func_max <- df_farmer_func %>%
 
 ## Add asterisks
 df_farmer_func_max_star <- df_farmer_func_max %>%
-    mutate(temp_max = MeanFunction + SdFunction) %>%
+    mutate(temp_max = MeanFunction + SeFunction) %>%
     select(Transfer, Experiment, temp_max, Asterisk) %>%
     pivot_wider(names_from = Experiment, values_from = temp_max) %>%
     mutate(AsteriskLocation = max(ctrl, expt) + 0.01) %>%
@@ -116,22 +118,13 @@ fwrite(df_farmer_func_max, file = "../data/temp/df_farmer_func_max.txt")
 fwrite(df_farmer_func_max_star, file = "../data/temp/df_farmer_func_max_star.txt")
 
 
-## Pearson correlation of max function
-df_farmer_func %>%
-    select(Transfer, Experiment, Media, CommunityFunction = MeanFunction) %>%
-    group_by(Transfer, Experiment) %>%
-    summarize(MeanCommunityFunction = mean(CommunityFunction), SdCommunityFunction = sd(CommunityFunction)) %>%
-    arrange(Experiment, Transfer) %>%
-    group_by(Experiment) %>%
-    nest() %>%
-    mutate(test = map(data, ~cor.test(.x$Transfer, .x$MeanCommunityFunction, method = "pearson")),
-           tided = map(test, glance)) %>%
-    unnest(tided) %>%
-    select(Experiment, estimate, p.value)
+## Mann-Kendall non-parametric test to test the trend significantly increases or descreases
+x <- df_farmer_func_max %>%
+    filter(Transfer, Experiment == "expt") %>%
+    select(Transfer, Experiment, MeanFunction) %>%
+    pull(MeanFunction)
 
-
-
-
+cor.test(x=1:length(x),y=x, meth="kendall", continuity = TRUE)
 
 
 

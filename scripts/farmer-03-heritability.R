@@ -21,7 +21,7 @@ df_well_map_top <- df_well_map_origin %>%
 df_farmer_func_top <- df_farmer_func %>%
     filter(Experiment == "expt") %>%
     right_join(df_well_map_top) %>%
-    select(Transfer, Media, MeanFunction, SdFunction) %>%
+    select(Transfer, Media, MeanFunction, SdFunction, SeFunction) %>%
     arrange(Transfer, Media)
 
 
@@ -48,13 +48,13 @@ for (i in 1:length(temp_list)) {
 
     parent <- df_farmer_func %>%
         filter(Transfer == i, Experiment == "expt") %>%
-        select(Media, MeanFunction, SdFunction) %>%
-        setNames(c("Parent", "ParentFunction", "ParentFunctionSd"))
+        select(Media, MeanFunction, SeFunction) %>%
+        setNames(c("Parent", "ParentFunction", "ParentFunctionSe"))
 
     offspring <- df_farmer_func %>%
         filter(Transfer == i+1, Experiment == "expt") %>%
-        select(Media, MeanFunction, SdFunction) %>%
-        setNames(c("Offspring", "OffspringFunction", "OffspringFunctionSd"))
+        select(Media, MeanFunction, SeFunction) %>%
+        setNames(c("Offspring", "OffspringFunction", "OffspringFunctionSe"))
 
     temp_list[[i]] <-
         offspring %>%
@@ -68,7 +68,8 @@ df_farmer_heritability <- rbindlist(temp_list, idcol = "Transfer") %>% as_tibble
     filter(!is.na(ParentFunction)) %>% # Remove dubious communities
     left_join(df_well_map_top %>% setNames(c("Parent", "Transfer", "Origin")), Joining, by = c("Transfer", "Parent"))
 
-# Compute heritability
+
+# Compute heritability from slope of parent-offspring pairs
 ## Overall
 df_farmer_heritability_stat_collapsed <- df_farmer_heritability %>%
     lm(data = ., formula = OffspringFunction ~ ParentFunction) %>%
@@ -98,6 +99,46 @@ df_farmer_heritability_stat$p.value_plot[df_farmer_heritability_stat$p.value_Slo
 fwrite(df_farmer_heritability, "../data/temp/df_farmer_heritability.txt")
 fwrite(df_farmer_heritability_stat, "../data/temp/df_farmer_heritability_stat.txt")
 fwrite(df_farmer_heritability_stat_collapsed, "../data/temp/df_farmer_heritability_stat_collapsed.txt")
+
+
+
+# Compute heritability from breeder's equation
+df_farmer_func <- fread("../data/temp/df_farmer_func.txt") %>% as_tibble() %>% mutate(Transfer = factor(Transfer))
+df_selected_parent <- df_well_map %>% distinct(Transfer, Parent) %>% mutate(Transfer = factor(Transfer))
+
+
+df_selected_parent_func <- df_farmer_func %>%
+    filter(Experiment == "expt") %>%
+    select(Transfer, Media, MeanFunction) %>%
+    setNames(c("Transfer", "Parent", "Function")) %>%
+    right_join(df_selected_parent)
+
+
+parents <- df_farmer_func %>%
+    filter(Experiment == "expt") %>%
+    group_by(Transfer) %>%
+    summarize(MeanParent = mean(MeanFunction, na.rm = T))
+
+selected_parents <- df_selected_parent_func %>%
+    group_by(Transfer) %>%
+    summarize(MeanSelectedParent = mean(Function, na.rm = T))
+
+selected_parents %>%
+    mutate(MeanParent = parents$MeanParent[1:6],
+           MeanOffspring = parents$MeanParent[2:7]) %>%
+    mutate(RealizedHeritability = (MeanParent-MeanOffspring)/(MeanParent-MeanSelectedParent))
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
