@@ -19,8 +19,8 @@ p_B <- df_amylase_func_mean %>%
     geom_errorbar(aes(x=Transfer, ymin = MeanCommunityFunction - SdCommunityFunction,
                       ymax = MeanCommunityFunction + SdCommunityFunction),
                   width = .2, position = position_dodge(0.3)) +
-    geom_point(shape = 21, fill = "white", size = 3, position = position_dodge(0.3)) +
     geom_line(linetype = 2, position = position_dodge(0.3)) +
+    geom_point(shape = 21, fill = "white", size = 3, position = position_dodge(0.3)) +
     # Add asterisk
     geom_text(data = df_amylase_func_mean_star, inherit.aes = F, aes(x = Transfer, y = AsteriskLocation, label = Asterisk),
               size = 4, color = "black") +

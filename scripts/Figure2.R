@@ -20,8 +20,8 @@ p_cartoon <- ggdraw() + draw_image("../data/experimental_scheme/Figure2A.png")
 # Panel B. Mean function
 p_B <- df_farmer_func_mean %>%
     ggplot(aes(x = Transfer, y = MeanCommunityFunction, color = Experiment, group = Experiment)) +
-    geom_errorbar(aes(x=Transfer, ymin = MeanCommunityFunction-SeCommunityFunction,
-                      ymax = MeanCommunityFunction+SeCommunityFunction),
+    geom_errorbar(aes(x=Transfer, ymin = MeanCommunityFunction-SdCommunityFunction,
+                      ymax = MeanCommunityFunction+SdCommunityFunction),
                   width = .2, position = position_dodge(0.3)) +
     geom_line(linetype = 2,position = position_dodge(0.3)) +
     geom_point(shape = 21, fill = "white", size = 3, position = position_dodge(0.3)) +
