@@ -1,9 +1,13 @@
 *.Rproj
 *.Rproj.user
 .DS_Store
+
+# folder
 figure/*
 scripts/deprecated/*
 data/deprecated/*
+document/*
+
 data/raw/farmer_mapping_files/*.pdf
 data/experimental_scheme/*.pdf
 .Rproj.user

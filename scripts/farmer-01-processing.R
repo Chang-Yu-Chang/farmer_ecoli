@@ -121,7 +121,9 @@ df_removed_bubble <- df_farmer2 %>%
     group_by(Transfer, Experiment, Media) %>%
     filter(Abs != max(Abs))
 
-df_farmer_func <-
+
+
+df_farmer_func_raw <-
     df_farmer2 %>%
     # Filter out possible bubble triplicate
     left_join(df_bubble) %>% replace_na(replace = list(Bubble = FALSE)) %>%
@@ -131,6 +133,13 @@ df_farmer_func <-
     # Function = OD normalized by positive control
     left_join(df_farmer_positive) %>%
     mutate(Function = Abs / MeanAbs_positive) %>%
+    select(Transfer, Experiment, Media, Function) %>%
+    # Assign measurement
+    group_by(Transfer, Experiment, Media) %>%
+    mutate(MeasurementReplicate = 1:n())
+
+
+df_farmer_func <- df_farmer_func_raw %>%
     # Mean functon of triplicates of each community
     select(Transfer, Experiment, Media, Function) %>%
     group_by(Transfer, Experiment, Media) %>%
@@ -139,7 +148,7 @@ df_farmer_func <-
               SeFunction = SdFunction / sqrt(n())) %>%
     {.}
 
-
+fwrite(df_farmer_func_raw, file = "../data/temp/df_farmer_func_raw.txt")
 fwrite(df_farmer_func, file = "../data/temp/df_farmer_func.txt")
 
 

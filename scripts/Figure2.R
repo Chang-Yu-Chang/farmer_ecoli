@@ -11,7 +11,8 @@ df_farmer_func_max <- fread("../data/temp/df_farmer_func_max.txt") %>% as_tibble
 df_farmer_func_max_star <- fread("../data/temp/df_farmer_func_max_star.txt") %>% as_tibble
 df_muller <- fread("../data/temp/df_muller.txt") %>% as_tibble()
 df_farmer_heritability <- fread("../data/temp/df_farmer_heritability.txt")
-df_farmer_heritability_stat_collapsed <- fread("../data/temp/df_farmer_heritability_stat_collapsed.txt")
+df_farmer_heritability_boot_stat <- fread("../data/temp/df_farmer_heritability_boot_stat.txt")
+
 
 # Panel A. Cartoon
 p_cartoon <- ggdraw() + draw_image("../data/experimental_scheme/Figure2A.png")
@@ -48,7 +49,7 @@ p_C <- df_farmer_func_max %>%
     coord_cartesian(ylim=c(0, 0.61)) +
     theme_cowplot() +
     theme(legend.position = "none", legend.title = element_blank()) +
-    labs(x = "Generation", y = "Maximum function")
+    labs(x = "Generation", y = "Maximum Function")
 
 # Panel D. Histogram
 p_D <- df_farmer_func %>%
@@ -58,27 +59,59 @@ p_D <- df_farmer_func %>%
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(expand = c(0,0)) +
     scale_fill_discrete(labels = c("control", "selection")) +
+    # Facet strips
+    geom_text(aes(label = paste0("Generation ", Transfer)), x = Inf, y = Inf, hjust = 1.2, vjust = 1.5) +
     facet_grid(Transfer~.,
-               labeller = labeller(Transfer = paste0(1:7) %>% setNames(1:7))) +
-    theme_classic() +
-    theme(legend.position ="none", legend.title = element_blank(),
-          legend.background = element_blank(),
-          strip.background = element_rect(fill = "NA", color = 1)) +
+               labeller = labeller(Transfer = paste0("Generation ", 1:7) %>% setNames(1:7))) +
+    theme_bw() +
+    theme(legend.position ="none", legend.title = element_blank(), legend.background = element_blank(),
+          panel.grid = element_blank(), panel.border = element_blank(),
+          strip.background = element_blank(), strip.text = element_blank()) +
     labs(x = "Function", y = "Frequency") +
     panel_border(color = "black")
 
 # Panel E. Heritability
 p_E <- df_farmer_heritability %>%
-    ggplot(aes(x = ParentFunction, y = OffspringFunction, color = Origin, shape = Origin)) +
-    geom_abline(size = .5, linetype = 2, color = "grey", slope = df_farmer_heritability_stat_collapsed$estimate[2], intercept = df_farmer_heritability_stat_collapsed$estimate[1]) +
-    geom_errorbar(size = .1, aes(ymin = OffspringFunction-OffspringFunctionSe, ymax = OffspringFunction+OffspringFunctionSe)) +
-    geom_errorbarh(size = .1, aes(xmin = ParentFunction-ParentFunctionSe, xmax = ParentFunction+ParentFunctionSe)) +
-    geom_point(fill = "white") +
+    ggplot(aes(x = ParentFunction, y = OffspringFunction)) +
+    #    geom_abline(slope = 1, intercept = 0, color = "grey", linetype = 2, size = .5) +
+    geom_abline(data = df_farmer_heritability_boot_stat %>% filter(Transfer <= 2),
+                color = "grey", linetype = 2,
+                aes(slope = MeanSlope, intercept = MeanIntercept)) +
+    geom_errorbar(aes(color = Origin, ymin = OffspringFunction-OffspringFunctionSe, ymax = OffspringFunction+OffspringFunctionSe)) +
+    geom_errorbarh(aes(color = Origin, xmin = ParentFunction-ParentFunctionSe, xmax = ParentFunction+ParentFunctionSe)) +
+    geom_point(aes(color = Origin, shape = Origin), fill = "white") +
     scale_color_manual(values = c("black", "#F3949B", "#E4211D")) +
     scale_shape_manual(values = c(21, 24, 22)) +
-    theme_cowplot() +
-    theme(panel.grid = element_blank(), legend.position = "none") +
-    labs(x = "Parent Function", y = "Offspring Function")
+    scale_x_continuous(breaks = c(0.1, 0.5)) +
+    scale_y_continuous(breaks = c(0.1, 0.5)) +
+    coord_cartesian(xlim = c(0, 0.6), ylim = c(0, 0.6)) +
+    # Strip
+    geom_text(aes(label = paste0("Generation ", Transfer, "-", Transfer+1)), x = 0.3, y = Inf, vjust = 1.5)+ #, hjust = 1.5, vjust = 1.5) +
+    #    geom_text(data = , x = 0.3, y = 0.5, paste0("Day", 1:6)) +
+    # Add stat
+    geom_text(data = df_farmer_heritability_boot_stat %>% filter(Transfer == 1),
+              aes(label = paste0("h^2==", round(MeanSlope, 3))), size = 3,
+              x = -Inf, y = 0.45, hjust = -0.3, parse = T) +
+    geom_text(data = df_farmer_heritability_boot_stat %>% filter(Transfer == 1),
+              aes(label = paste0(p.value_plot)), size = 3,
+              x = -Inf, y = 0.39, hjust = -0.3) +
+    geom_text(data = df_farmer_heritability_boot_stat %>% filter(Transfer == 2),
+              aes(label = paste0("h^2==", round(MeanSlope, 3))), size = 3,
+              x = 0.3, y = 0.25, hjust = -0.1, parse = T) +
+    geom_text(data = df_farmer_heritability_boot_stat %>% filter(Transfer == 2),
+              aes(label = paste0(p.value_plot)), size = 3,
+              x = 0.3, y = 0.19, hjust = -0.1, parse = T) +
+    geom_text(data = df_farmer_heritability_boot_stat %>% filter(Transfer >= 3),
+              aes(label = paste0(p.value_plot)), size = 3,
+              x = -Inf, y = -Inf, hjust = -.3, vjust = -1) +
+    facet_wrap(Transfer~., labeller = labeller(Transfer = paste0("Generation ", 1:6, " - ", 2:7) %>% setNames(1:6))) +
+    theme_bw() +
+    theme(legend.position = "none",
+          panel.border = element_blank(), panel.grid = element_blank(),
+          strip.background = element_blank(),
+          strip.text = element_blank()) +
+    panel_border(color = "black", size = 1) +
+    labs(x = "Parent", y = "Offspring")
 
 
 # Panel F. Muller diagram
@@ -100,23 +133,21 @@ p_F <- df_muller %>%
     labs(x = "Generation", y = "Frequency")
 
 # Panel G. Varirance versus mean
-df_farmer_func_var <- df_farmer_func %>%
-    select(Transfer, Experiment, Media, CommunityFunction = MeanFunction) %>%
-    group_by(Transfer, Experiment) %>%
-    summarize(VarCommunityFunction = var(CommunityFunction), MeanCommunityFunction = mean(CommunityFunction), SdCommunityFunction = sd(CommunityFunction), SeCommunityFunction = SdCommunityFunction/sqrt(n())) %>%
-    filter(Experiment == "expt")
+df_G <- df_farmer_func_mean %>%
+    filter(Experiment == "expt") %>%
+    bind_rows(df_farmer_heritability_boot_stat %>% mutate(Transfer = Transfer + 0.5))
 
-ylim.prim <- c(0, 0.05)   # in this example, var
+ylim.prim <- c(0, 1)   # in this example, heritability
 ylim.sec <- c(0, 0.4)    # in this example, mean
 b <- diff(ylim.prim)/diff(ylim.sec)
 a <- b*(ylim.prim[1] - ylim.sec[1])
 mycolors = c(left = "#E7861B", right = "#7997FF") # #00BFC4
 
-p_G <- df_farmer_func_var %>%
+p_G <- df_G %>%
     ggplot(aes(x = Transfer)) +
     # Var, primary axis
-    geom_line(aes(y = VarCommunityFunction, group = Experiment), linetype = 2, color = mycolors["left"]) +
-    geom_point(aes(y = VarCommunityFunction, group = Experiment), shape = 22, fill = "white", size = 3, color = mycolors["left"]) +
+    geom_line(aes(y = MeanSlope, group = Experiment), linetype = 2, color = mycolors["left"]) +
+    geom_point(aes(y = MeanSlope, group = Experiment), shape = 22, fill = "white", size = 3, color = mycolors["left"]) +
     # Mean, secondary axis
     geom_errorbar(aes(x=Transfer, ymin = a + b * (MeanCommunityFunction-SeCommunityFunction),
                       ymax = a + b * (MeanCommunityFunction+SeCommunityFunction)),
@@ -124,7 +155,7 @@ p_G <- df_farmer_func_var %>%
     geom_line(aes(y = a + b * MeanCommunityFunction, group = Experiment), linetype = 2, color = mycolors["right"]) +
     geom_point(aes(y = a + b * MeanCommunityFunction, group = Experiment), shape = 21, fill = "white", size = 3, color = mycolors["right"]) +
     scale_x_continuous(breaks = 1:7) +
-    scale_y_continuous("Variance function", sec.axis = sec_axis(~ (. - a)/b, name = "Mean function")) +
+    scale_y_continuous("Heritability", sec.axis = sec_axis(~ (. - a)/b, name = "Mean")) +
     theme_cowplot() +
     theme(legend.position = "top", legend.title = element_blank(),
           axis.title.y = element_text(color = mycolors["left"]),
@@ -139,13 +170,12 @@ p_G <- df_farmer_func_var %>%
     labs(x = "Generation")
 
 
-
 # Put together panels
 p_BC <- plot_grid(plotlist = list(p_B, p_C), nrow = 1, labels = c("B", "C"), align = "hv", greedy = T)
-p_EFG <- plot_grid(plotlist = list(p_E, p_F, p_G), nrow = 1, labels = c("E", "F", "G"), rel_widths = c(2.5,3,2.5))
+p_EFG <- plot_grid(plotlist = list(p_E, p_F, p_G), nrow = 1, labels = c("E", "F", "G"), rel_widths = c(4,3,2.5))
 p_left_column <- plot_grid(plotlist = list(p_cartoon, NULL, p_BC, NULL, p_EFG), ncol = 1, labels = c("A", "", ""), rel_heights = c(3.5, 0.3, 3, 0.5, 3))
-p <- plot_grid(p_left_column, p_D, ncol = 2, labels = c("", "D"), rel_widths = c(5, 1.5))
+p <- plot_grid(p_left_column, p_D, ncol = 2, labels = c("", "D"), rel_widths = c(6, 1.5))
 
-ggsave("../figure/Fig2.png", plot = p, width = 14, height = 10)
-ggsave("../figure/Fig2.pdf", plot = p, width = 14, height = 10)
+ggsave("../figure/Fig2.png", plot = p, width = 16, height = 12)
+ggsave("../figure/Fig2.pdf", plot = p, width = 16, height = 12)
 
