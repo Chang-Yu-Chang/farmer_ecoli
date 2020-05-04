@@ -1,8 +1,10 @@
 ## Manuscript repository
 
-This repository contains the scripts and key data files used for the manuscript entitled "Two community-level artificial selection experiments using propagule strategies"
+This repository contains the scripts and key data files used for the manuscript entitled "Artificially selecting microbial communities using propagule strategies"
 
-The `scripts` directory contains scripts used for processing raw data, creating key intermediate files for plotting, statistics, and summarizing data. `Figure1.R` and `Figure2.R` are scripts used for plotting the main figures. Each script generates a different figure, which can be remade from the intermediate files in this repository.
+The preprint manuscript is on [bioRxiv](https://www.biorxiv.org/content/10.1101/2020.05.01.066282v1)
+
+The `scripts` directory contains scripts used for processing raw data, creating key intermediate data files for plotting, statistics, and summarizing data. `Figure1.R` and `Figure2.R` are scripts used for plotting the main figures. Each script generates a different figure, which can be remade from the intermediate files in this repository.
 
 The `data` directory contains three folders: 
 
