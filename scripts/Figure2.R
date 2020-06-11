@@ -132,7 +132,7 @@ p_F <- df_muller %>%
     panel_border(color = "black") +
     labs(x = "Generation", y = "Frequency")
 
-# Panel G. Varirance versus mean
+# Panel G. Heritability versus mean
 df_G <- df_farmer_func_mean %>%
     filter(Experiment == "expt") %>%
     bind_rows(df_farmer_heritability_boot_stat %>% mutate(Transfer = Transfer + 0.5))
@@ -145,7 +145,7 @@ mycolors = c(left = "#E7861B", right = "#7997FF") # #00BFC4
 
 p_G <- df_G %>%
     ggplot(aes(x = Transfer)) +
-    # Var, primary axis
+    # Heritability, primary axis
     geom_line(aes(y = MeanSlope, group = Experiment), linetype = 2, color = mycolors["left"]) +
     geom_point(aes(y = MeanSlope, group = Experiment), shape = 22, fill = "white", size = 3, color = mycolors["left"]) +
     # Mean, secondary axis

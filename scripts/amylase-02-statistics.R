@@ -1,4 +1,7 @@
-#' Read the
+#' Statistics for the first expeirment: amylolytic activities
+#' 1. ttest for difference in mean function
+#' 2. ttest for difference in  maximum function
+
 library(tidyverse)
 library(data.table)
 library(broom)
@@ -9,27 +12,18 @@ df_amylase_func <- fread("../data/raw/amylase_summary.csv") %>%
 
 fwrite(df_amylase_func, "../data/temp/df_amylase_func.txt")
 
-# Mean function
-t.test2 <- function(m1,m2,s1,s2,n1,n2,m0=0,equal.variance=FALSE)
-{
-    if( equal.variance==FALSE )
-    {
-        se <- sqrt( (s1^2/n1) + (s2^2/n2) )
-        # welch-satterthwaite df
-        df <- ( (s1^2/n1 + s2^2/n2)^2 )/( (s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1) )
-    } else
-    {
-        # pooled standard deviation, scaled by the sample sizes
-        se <- sqrt( (1/n1 + 1/n2) * ((n1-1)*s1^2 + (n2-1)*s2^2)/(n1+n2-2) )
-        df <- n1+n2-2
-    }
-    t <- (m1-m2-m0)/se
-    dat <- c(m1-m2, se, t, 2*pt(-abs(t),df))
-    dat <- as.data.frame(matrix(dat, nrow = 1))
-    colnames(dat) <- c("Difference of means", "Std Error", "t", "p.value")
-    return(dat)
+#
+t.test2 <- function(m1, m2, s1, s2, n1, n2){
+    se <- sqrt((s1^2/n1) + (s2^2/n2))
+    degree_freedom <- ( (s1^2/n1 + s2^2/n2)^2 )/( (s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1) )
+    t_stat <- (m1-m2)/se
+    c(m1-m2, se, t_stat, 2*pt(-abs(t_stat),degree_freedom)) %>%
+        as.data.frame(matrix(dat, nrow = 1)) %>%
+        setnames(c("Difference of means", "Std Error", "t", "p.value")) %>%
+        return()
 }
 
+# Mean function
 # t test
 df_amylase_ttest_mean <- df_amylase_func %>%
     filter(Stat %in% c("Mean", "Sd")) %>%
@@ -80,7 +74,7 @@ df_amylase_ttest_max <-
     filter(Stat %in% c("Max", "Error")) %>%
     group_by(Transfer) %>%
     pivot_wider(names_from = c(Stat, Experiment), values_from = CommunityFunction) %>%
-    mutate(N_expt = 4, N_ctrl = 4) %>%
+    mutate(N_expt = 3, N_ctrl = 3) %>%
     nest() %>%
     mutate(test = map(data, ~t.test2(m1 = .x$Max_ctrl, m2 = .x$Max_expt,
                                      s1 = .x$Error_ctrl, s2 = .x$Error_expt,

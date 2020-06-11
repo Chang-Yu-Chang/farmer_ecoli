@@ -1,8 +1,7 @@
 #' Statistics for the second expeirment: farmer E coli
-#' 1. mean function difference using t test
-#' 2. maximum function differnece using t test
-#' 3. pearson correlation between time and maximam function
-
+#' 1. Mean function difference using t test
+#' 2. Maximum function differnece using t test
+#' 3. Mann-Kendall test between time and maximam function
 
 library(tidyverse)
 library(data.table)
@@ -54,24 +53,14 @@ fwrite(df_farmer_func_mean_star, file = "../data/temp/df_farmer_func_mean_star.t
 
 # Maximum function
 ## Compute t test from mean, se, and sample size
-t.test2 <- function(m1,m2,s1,s2,n1,n2,m0=0,equal.variance=FALSE)
-{
-    if( equal.variance==FALSE )
-    {
-        se <- sqrt( (s1^2/n1) + (s2^2/n2) )
-        # welch-satterthwaite df
-        df <- ( (s1^2/n1 + s2^2/n2)^2 )/( (s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1) )
-    } else
-    {
-        # pooled standard deviation, scaled by the sample sizes
-        se <- sqrt( (1/n1 + 1/n2) * ((n1-1)*s1^2 + (n2-1)*s2^2)/(n1+n2-2) )
-        df <- n1+n2-2
-    }
-    t <- (m1-m2-m0)/se
-    dat <- c(m1-m2, se, t, 2*pt(-abs(t),df))
-    dat <- as.data.frame(matrix(dat, nrow = 1))
-    colnames(dat) <- c("Difference of means", "Std Error", "t", "p.value")
-    return(dat)
+t.test2 <- function(m1, m2, s1, s2, n1, n2){
+    se <- sqrt((s1^2/n1) + (s2^2/n2))
+    degree_freedom <- ( (s1^2/n1 + s2^2/n2)^2 )/( (s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1) )
+    t_stat <- (m1-m2)/se
+    c(m1-m2, se, t_stat, 2*pt(-abs(t_stat),degree_freedom)) %>%
+        as.data.frame(matrix(dat, nrow = 1)) %>%
+        setnames(c("Difference of means", "Std Error", "t", "p.value")) %>%
+        return()
 }
 
 df_farmer_ttest_max <-
