@@ -9,7 +9,7 @@ df_farmer_func_mean <- fread("../data/temp/df_farmer_func_mean.txt") %>% as_tibb
 df_farmer_func_mean_star <- fread("../data/temp/df_farmer_func_mean_star.txt") %>% as_tibble
 df_farmer_func_max <- fread("../data/temp/df_farmer_func_max.txt") %>% as_tibble
 df_farmer_func_max_star <- fread("../data/temp/df_farmer_func_max_star.txt") %>% as_tibble
-df_muller <- fread("../data/temp/df_muller.txt") %>% as_tibble()
+df_muller_expt <- fread("../data/temp/df_muller_expt.txt") %>% as_tibble()
 df_farmer_heritability <- fread("../data/temp/df_farmer_heritability.txt")
 df_farmer_heritability_boot_stat <- fread("../data/temp/df_farmer_heritability_boot_stat.txt")
 
@@ -116,7 +116,7 @@ p_E <- df_farmer_heritability %>%
 
 # Panel F. Muller diagram
 getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
-p_F <- df_muller %>%
+p_F <- df_muller_expt %>%
     extract(col = Community, into = c("Replicate", "Sample"), regex = "(\\w)(\\d+)", remove = F) %>%
     extract(col = Transfer, into = "Transfer", regex = "T(\\d+)", remove = T) %>%
     mutate(Transfer = as.numeric(Transfer)) %>%

@@ -58,7 +58,8 @@ t.test2 <- function(m1, m2, s1, s2, n1, n2){
     degree_freedom <- ( (s1^2/n1 + s2^2/n2)^2 )/( (s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1) )
     t_stat <- (m1-m2)/se
     c(m1-m2, se, t_stat, 2*pt(-abs(t_stat),degree_freedom)) %>%
-        as.data.frame(matrix(dat, nrow = 1)) %>%
+        matrix(nrow = 1) %>%
+        as.data.frame() %>%
         setnames(c("Difference of means", "Std Error", "t", "p.value")) %>%
         return()
 }

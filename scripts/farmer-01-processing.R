@@ -7,72 +7,89 @@
 library(tidyverse)
 library(data.table)
 
-# Muller diagram ----
-# Read the raw map files
+# Prepare mapping file for Muller diagram ----
 wells <- c(paste0(rep(LETTERS[1:8], 12), sprintf("%02d", rep(1:12, each = 8))))
 wells <- wells[! wells %in% paste0("H", sprintf("%02d", 9:12))] # Remove the wells for media blank
 replicate_well <- fread("../data/raw/farmer_mapping_files/T3_ctrl_wells.csv", header = T) %>% pull(destination)
 
-df_wells <- as.data.frame(matrix(NA, 92, 7)) %>% setNames(paste0("T", 1:7))
-df_wells$T1 <- wells
+map_origin <- function (treatment = "expt"){
+    # Read the raw map files
+    df_wells <- as.data.frame(matrix(NA, 92, 7)) %>% setNames(paste0("T", 1:7))
+    df_wells$T1 <- wells
 
-# T1-T2; old T2-T3
-temp_wells <- fread(paste0("../data/raw/farmer_mapping_files/T3_expt_wells.csv"), header = T) %>%
-    slice(1:92) %>%
-    select(Parent = source) %>%
-    mutate(Offspring = c(replicate_well)) %>%
-    as_tibble %>%
-    arrange(factor(Offspring, wells)) %>%
-    pull(Parent)
-
-df_wells$T2 <- temp_wells
-
-for (i in 2:6) {
-    temp_map <- tibble(Origin = temp_wells, Plate = wells)
-
-    temp_wells <-
-        fread(paste0("../data/raw/farmer_mapping_files/T", i+2, "_expt_wells.csv"), header = T) %>% as_tibble %>%
+    # T1-T2; old T2-T3
+    temp_wells <- fread(paste0("../data/raw/farmer_mapping_files/T3_", treatment,"_wells.csv"), header = T) %>%
         slice(1:92) %>%
-        select(Plate = source) %>%
-        left_join(temp_map, by = "Plate") %>%
-        select(Parent = Origin) %>%
+        select(Parent = source) %>%
         mutate(Offspring = c(replicate_well)) %>%
         as_tibble %>%
         arrange(factor(Offspring, wells)) %>%
         pull(Parent)
 
-    df_wells[paste0("T", i+1)] <- temp_wells
+    df_wells$T2 <- temp_wells
+
+    for (i in 2:6) {
+        temp_map <- tibble(Origin = temp_wells, Plate = wells)
+
+        temp_wells <-
+            fread(paste0("../data/raw/farmer_mapping_files/T", i+2, "_", treatment, "_wells.csv"), header = T) %>% as_tibble %>%
+            slice(1:92) %>%
+            select(Plate = source) %>%
+            left_join(temp_map, by = "Plate") %>%
+            select(Parent = Origin) %>%
+            mutate(Offspring = c(replicate_well)) %>%
+            as_tibble %>%
+            arrange(factor(Offspring, wells)) %>%
+            pull(Parent)
+
+        df_wells[paste0("T", i+1)] <- temp_wells
+    }
+
+    # If H09-H12 are selected (which should not be), then set it as NA
+    for (i in 1:7) df_wells[df_wells[,i] %in% paste0("H", sprintf("%02d", 9:12)),i] <- NA
+
+
+    # Reformat df_well for muller figure
+    df_muller <-
+        df_wells %>%
+        mutate(Well = T1) %>%
+        pivot_longer(cols = -Well, names_to = "Transfer", values_to = "Community") %>%
+        arrange(Transfer, Well) %>%
+        # Remove NA that accidently selects the contanminated blanks
+        filter(!is.na(Community)) %>%
+        select(Transfer, Community) %>%
+        group_by(Transfer, Community) %>%
+        summarize(Count = n()) %>%
+        ungroup() %>%
+        group_by(Transfer) %>%
+        mutate(TotalCount = sum(Count),
+               Frequency = Count / TotalCount) %>%
+        # Add count = 0 back
+        right_join(tibble(Transfer = paste0("T", rep(1:7, each = 92)), Community = rep(wells, 7))) %>%
+        replace_na(replace = list(Frequency = 0, Count = 0))
+
+    return(list(well_origin = df_wells, muller = df_muller))
 }
+
+df_well_origin_expt <- map_origin("expt")$well_origin
+df_muller_expt <- map_origin("expt")$muller
+df_well_origin_ctrl <- map_origin("ctrl")$well_origin
+df_muller_ctrl <- map_origin("ctrl")$muller
+
+fwrite(df_well_origin_expt, "../data/temp/df_well_origin_expt.txt")
+fwrite(df_muller_expt, "../data/temp/df_muller_expt.txt")
+fwrite(df_well_origin_ctrl, "../data/temp/df_well_origin_ctrl.txt")
+fwrite(df_muller_ctrl, "../data/temp/df_muller_ctrl.txt")
+
+
+
 
 # The sample size varies because of the removal of contaminated communities
 cat("number of removed wells per generation\n")
-(df_wells %>% is.na() %>% apply(2, sum))
+(df_well_origin_expt %>% is.na() %>% apply(2, sum))
 
 cat("sample size per generation\n")
-92*2 - (df_wells %>% is.na() %>% apply(2, sum))
-
-# Reformat df_well for muller figure
-df_muller <-
-    df_wells %>%
-    mutate(Well = T1) %>%
-    pivot_longer(cols = -Well, names_to = "Transfer", values_to = "Community") %>%
-    arrange(Transfer, Well) %>%
-    # Remove NA that accidently selects the contanminated blanks
-    filter(!is.na(Community)) %>%
-    select(Transfer, Community) %>%
-    group_by(Transfer, Community) %>%
-    summarize(Count = n()) %>%
-    ungroup() %>%
-    group_by(Transfer) %>%
-    mutate(TotalCount = sum(Count),
-           Frequency = Count / TotalCount) %>%
-    # Add count = 0 back
-    right_join(tibble(Transfer = paste0("T", rep(1:7, each = 92)), Community = rep(wells, 7))) %>%
-    replace_na(replace = list(Frequency = 0, Count = 0))
-
-fwrite(df_wells, "../data/temp/df_well_map_origin.txt") # The origin of communties
-fwrite(df_muller, "../data/temp/df_muller.txt")
-
+92*2 - (df_well_origin_expt %>% is.na() %>% apply(2, sum))
 
 # OD data ----
 # Read farmer OD data

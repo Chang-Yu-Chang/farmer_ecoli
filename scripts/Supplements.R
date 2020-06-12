@@ -7,22 +7,33 @@ library(knitr)
 library(kableExtra)
 
 # Read data
+df_amylase_strain <- read_csv("../data/raw/amylase/single_fits.csv")
+df_amylase_lichen <- read_csv("../data/raw/amylase/licheniformis_single.csv")
 df_farmer_OD <- read_csv("../data/temp/df_farmer_OD.txt")
 df_farmer_func <- read_csv("../data/temp/df_farmer_func.txt")
 
 # Table S1
 ## The data is adapted from Sanchez-Gorostiaga2019
-t1 <- tibble(
-    ` ` = "V_{i}(hr^{-1})",
-    `Bacillus subtilis` = "V_{S}=1.21±0.13",
-    `Bacillus megaterium` = "V_{M}=0.04±0.01",
-    `Paenibacillus polymyxa` = "V_{P}=0.19±0.02") %>%
+t1 <- df_amylase_strain %>%
+    mutate(Vj.fit = round(Vj.fit, 3), se = round(se, 3)) %>%
+    unite("Vi", Vj.fit, se, sep = "±") %>%
+    filter(S1 %in% c("Subtilis", "Megaterium", "Polymyxa", "licheniformis")) %>%
+    mutate(S1 = c("Bacillus subtilis", "Bacillus megaterium", "Paenibacillus polymyxa", "Bacillus licheniformis")) %>%
+    setNames(c(" ", "V_{i}(hr^{-1})")) %>%
     kable(format = "latex", booktabs = T, escape = F) %>%
-    column_spec(1, italic = T) %>%
-    row_spec(0, italic = T)
+    column_spec(1, italic = T, )
 
 save_kable(t1, file = "../figure/TabS1.png")
 
+
+# Fig S1
+p1 <- ggplot(df_amylase_lichen, aes(t, f.j, color=ordered(x, sort(unique(df_amylase_lichen$x))), group=x)) +
+    geom_point() + geom_line(linetype='dashed') +
+    theme_cowplot() +
+    theme(panel.grid=element_blank()) +
+    labs(x='time (hr.)', y='Fraction of starch degraded',
+         color = 'SN\ndilution')
+ggsave('../figure/FigS1.png', plot = p1, width = 4, height = 3)
 
 # Fig S2
 p2_pre <- df_farmer_OD %>%
@@ -53,21 +64,17 @@ p2_inset <- df_farmer_OD %>%
     geom_jitter(width = 0.2, size = 0.2) +
     scale_x_continuous(breaks = 1:7) +
     theme_classic() +
-    theme(legend.position = "top", axis.line = element_blank()) +
-    labs(x = "", y = "") +
+    theme(legend.position = "top", axis.line = element_blank(), axis.title = element_blank()) +
     panel_border(color = 1)+
     NULL
 
 p2 <- plot_grid(p2_pre) +
-    draw_plot(p2_inset, x = 0.75, y = 0.55, width = 0.2, height = 0.35)
-ggsave("../figure/FigS2.png", plot = p2, width = 10, height = 4)
+    draw_plot(p2_inset, x = 0.75, y = 0.55, width = 0.2, height = 0.3)
+ggsave("../figure/FigS2.png", plot = p2, width = 8, height = 3)
 
 
-
-
-# Coefficient of Variance
+# Figure S3
 df_var <- df_farmer_func %>%
-    #filter(Experiment == "expt") %>%
     group_by(Transfer, Experiment) %>%
     summarise(VarCommunityFunction = var(MeanFunction),
               MeanCommunityFunction = mean(MeanFunction),
@@ -109,5 +116,29 @@ p3 <- df_var %>%
     labs(x = "Generation") +
      guides(color = F)
 
-ggsave("../figure/FigS3.png", plot = p3, width = 5, height = 5)
+ggsave("../figure/FigS3.png", plot = p3, width = 4, height = 3)
+
+
+# Muller diagram of control line
+df_muller_ctrl <- fread("../data/temp/df_muller_ctrl.txt")
+getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
+p4 <- df_muller_ctrl %>%
+    extract(col = Community, into = c("Replicate", "Sample"), regex = "(\\w)(\\d+)", remove = F) %>%
+    extract(col = Transfer, into = "Transfer", regex = "T(\\d+)", remove = T) %>%
+    mutate(Transfer = as.numeric(Transfer)) %>%
+    ggplot(aes(x = Transfer, y = Frequency, fill = Sample, alpha = Replicate)) +
+    geom_area(color = "black", size = .1) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_fill_manual(values =  getPalette(12)) +
+    scale_alpha_manual(values = seq(0.5, 1, length.out = 8)) +
+    theme_cowplot() +
+    theme(legend.position = "right") +
+    guides(alpha = F) +
+    panel_border(color = "black") +
+    labs(x = "Generation", y = "Frequency")
+
+ggsave("../figure/FigS4.png", plot = p4, width = 5, height = 4)
+
+
 

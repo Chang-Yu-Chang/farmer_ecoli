@@ -6,7 +6,7 @@ library(tidyverse)
 library(data.table)
 library(broom)
 
-df_amylase_func <- fread("../data/raw/amylase_summary.csv") %>%
+df_amylase_func <- fread("../data/raw/amylase/amylase_summary.csv") %>%
     setNames(c("Transfer", paste0(rep(c("Max", "Error", "Mean", "Sd"), 2), "_", rep(c("expt", "ctrl"), each = 4)))) %>%
     pivot_longer(cols = -Transfer, names_to = c("Stat", "Experiment"), names_pattern = "(.*)_(.*)", values_to = "CommunityFunction")
 
@@ -18,7 +18,8 @@ t.test2 <- function(m1, m2, s1, s2, n1, n2){
     degree_freedom <- ( (s1^2/n1 + s2^2/n2)^2 )/( (s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1) )
     t_stat <- (m1-m2)/se
     c(m1-m2, se, t_stat, 2*pt(-abs(t_stat),degree_freedom)) %>%
-        as.data.frame(matrix(dat, nrow = 1)) %>%
+        matrix(nrow = 1) %>%
+        as.data.frame() %>%
         setnames(c("Difference of means", "Std Error", "t", "p.value")) %>%
         return()
 }
