@@ -28,9 +28,10 @@ p_B <- df_amylase_func_mean %>%
     scale_color_discrete(labels = c("control", "selection")) +
     coord_cartesian(ylim=c(0, 0.45)) +
     theme_cowplot() +
-    theme(legend.position = c(0.1, 0.95), legend.direction = "vertical", legend.title = element_blank()) +
+    theme(legend.position = "none", legend.direction = "vertical", legend.title = element_blank()) +
     labs(x = "Generation", y = "Mean Function")
 
+legend_BC <- get_legend(p_B + theme(legend.position = c(0.5,0.8), legend.justification = "center") + guides(color = guide_legend(nrow = 1), shape = F))
 
 p_B_inset <- df_amylase_func %>%
     filter(Stat %in% c("Mean", "Sd")) %>%
@@ -65,11 +66,13 @@ p_C <- df_amylase_func_max %>%
     labs(x = "Generation", y = "Maximum Function")
 
 
+
 # Put together the panels
 p_bottom_row <- plot_grid(plotlist = list(p_B, p_C), ncol = 2, labels = LETTERS[2:3], axis = "t", align = "hv") +
     draw_plot(p_B_inset, x = 0.25, y = 0.6, width = 0.25, height = 0.4)
 
-p <- plot_grid(p_cartoon, p_bottom_row, ncol = 1, labels = c("A", ""), rel_heights = c(1, 1))
+p <- plot_grid(p_cartoon, legend_BC, p_bottom_row, ncol = 1, labels = c("A", ""), rel_heights = c(1, .1, 1))
+#p <- plot_grid(p_cartoon, NA, p_bottom_row, ncol = 1, labels = c("A", ""), rel_heights = c(1, , 1))
 
 ggsave("../figure/Fig1.png", plot = p, width = 9, height = 7)
 ggsave("../figure/Fig1.pdf", plot = p, width = 9, height = 7)

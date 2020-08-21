@@ -1,4 +1,4 @@
-#' This script makes figure from the farmer E coli
+#' This script makes figure 2 for the farmer E coli paper
 
 library(tidyverse)
 library(data.table)
@@ -32,9 +32,10 @@ p_B <- df_farmer_func_mean %>%
     scale_x_continuous(breaks = 1:7) +
     scale_color_discrete(labels = c("control", "selection")) +
     theme_cowplot() +
-    theme(legend.position = c(0.1, 0.95), legend.title = element_blank()) +
+    theme(legend.position = "none", legend.title = element_blank()) +
     labs(x = "Generation", y = "Mean Function")
 
+legend_BC <- get_legend(p_B + theme(legend.position = c(0.5,0.5), legend.justification = "center") + guides(color = guide_legend(nrow = 1), shape = F))
 
 # Panel C. Maximum function
 p_C <- df_farmer_func_max %>%
@@ -130,7 +131,8 @@ p_F <- df_muller_expt %>%
     theme(legend.position = "right") +
     guides(alpha = F) +
     panel_border(color = "black") +
-    labs(x = "Generation", y = "Frequency")
+    labs(x = "Generation", y = "Frequency") +
+    ggtitle("Selection line")
 
 # Panel G. Heritability versus mean
 df_G <- df_farmer_func_mean %>%
@@ -172,8 +174,8 @@ p_G <- df_G %>%
 
 # Put together panels
 p_BC <- plot_grid(plotlist = list(p_B, p_C), nrow = 1, labels = c("B", "C"), align = "hv", greedy = T)
-p_EFG <- plot_grid(plotlist = list(p_E, p_F, p_G), nrow = 1, labels = c("E", "F", "G"), rel_widths = c(4,3,2.5))
-p_left_column <- plot_grid(plotlist = list(p_cartoon, NULL, p_BC, NULL, p_EFG), ncol = 1, labels = c("A", "", ""), rel_heights = c(3.5, 0.3, 3, 0.5, 3))
+p_EFG <- plot_grid(plotlist = list(p_E, p_F, p_G), nrow = 1, labels = c("E", "F", "G"), rel_widths = c(4,3,2.5), align = "h", axis = "t")
+p_left_column <- plot_grid(plotlist = list(p_cartoon, legend_BC, p_BC, NULL, p_EFG), ncol = 1, labels = c("A", "", ""), rel_heights = c(3.5, 0.3, 3, 0.3, 3))
 p <- plot_grid(p_left_column, p_D, ncol = 2, labels = c("", "D"), rel_widths = c(6, 1.5))
 
 ggsave("../figure/Fig2.png", plot = p, width = 16, height = 12)
