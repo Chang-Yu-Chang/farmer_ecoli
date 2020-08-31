@@ -5,10 +5,8 @@
 
 # folder
 figure/*
-scripts/deprecated/*
-data/deprecated/*
-data/experimental_scheme/deprecated/*
 document/*
+*/deprecated/*
 
 data/raw/farmer_mapping_files/*.pdf
 data/experimental_scheme/*.pdf
