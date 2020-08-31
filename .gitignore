@@ -4,9 +4,9 @@
 *.Rhistory
 
 # folder
-figure/*
 document/*
 */deprecated/*
+data/experimental_scheme/deprecated/*
 
 data/raw/farmer_mapping_files/*.pdf
 data/experimental_scheme/*.pdf
